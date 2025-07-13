@@ -17,6 +17,12 @@ function GetEmpList() {
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [mode, setMode] = useState("view");
   const [showPostForm, setShowPostForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // You can change this number
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEmployees = employees.slice(indexOfFirstItem, indexOfLastItem);
 
   useEffect(() => {
     axios
@@ -77,7 +83,7 @@ function GetEmpList() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp) => (
+            {currentEmployees.map((emp) => (
               <tr key={emp.id}>
                 <td>{emp.id}</td>
                 <td>{emp.name}</td>
@@ -109,6 +115,53 @@ function GetEmpList() {
             ))}
           </tbody>
         </table>
+
+        <nav className="mt-3">
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Previous
+              </button>
+            </li>
+
+            {Array.from(
+              { length: Math.ceil(employees.length / itemsPerPage) },
+              (_, i) => (
+                <li
+                  key={i}
+                  className={`page-item ${
+                    currentPage === i + 1 ? "active" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                </li>
+              )
+            )}
+
+            <li
+              className={`page-item ${
+                currentPage === Math.ceil(employees.length / itemsPerPage)
+                  ? "disabled"
+                  : ""
+              }`}
+            >
+              <button
+                className="page-link"
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
 
         {/* Bootstrap Modal */}
         <div
