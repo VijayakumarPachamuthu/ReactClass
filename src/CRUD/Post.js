@@ -13,13 +13,14 @@ function Post({ onAdd }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newEmp = {
-      ...emp,
-      experiance: parseInt(emp.experiance),
-      salary: parseFloat(emp.salary),
+      name: emp.name,
+      gender: emp.gender,
+      experiance: emp.experiance,
+      role: emp.role,
+      salary: emp.salary,
     };
 
-    axios
-      .post("http://localhost:8082/postSingleObject", newEmp)
+    axios.post("http://localhost:8082/postSingleObject", newEmp)
       .then(() => {
         setEmp({ name: "", gender: "", experiance: "", role: "", salary: "" });
         if (onAdd) onAdd(); // refresh employee list

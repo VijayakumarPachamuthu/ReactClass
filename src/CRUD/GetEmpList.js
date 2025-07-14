@@ -2,8 +2,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Post from "./Post";
-import Pagination from "./ForwordAndBack.js";
 import ForwordAndBack from "./ForwordAndBack.js";
+import UpdateModel from "./UpdateModel.js";
 
 function GetEmpList() {
   const [employees, setEmployees] = useState([]);
@@ -60,7 +60,7 @@ function GetEmpList() {
       <div className="d-flex justify-content-end mb-3">
         <div className="input-group w-25">
           <span className="input-group-text">
-            <i className="bi bi-search"></i>
+            <i className="bi bi-search-heart"></i>
           </span>
           <input
             type="text"
@@ -140,100 +140,12 @@ function GetEmpList() {
       />
 
       {/* Modal */}
-      <div
-        className="modal fade"
-        id="viewModal"
-        tabIndex="-1"
-        aria-labelledby="viewModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">
-                {mode === "view" ? "Employee Details" : "Edit Employee"}
-              </h5>
-              <button className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div className="modal-body">
-              {selectedEmp &&
-                (mode === "view" ? (
-                  <ul className="list-group">
-                    <li className="list-group-item">ID: {selectedEmp.id}</li>
-                    <li className="list-group-item">
-                      Name: {selectedEmp.name}
-                    </li>
-                    <li className="list-group-item">
-                      Gender: {selectedEmp.gender}
-                    </li>
-                    <li className="list-group-item">
-                      Experience: {selectedEmp.experiance}
-                    </li>
-                    <li className="list-group-item">
-                      Role: {selectedEmp.role}
-                    </li>
-                    <li className="list-group-item">
-                      Salary: ₹{selectedEmp.salary}
-                    </li>
-                  </ul>
-                ) : (
-                  <form>
-                    {["name", "gender", "experiance", "role", "salary"].map(
-                      (field) => (
-                        <div className="mb-2" key={field}>
-                          <label className="form-label">
-                            {field.charAt(0).toUpperCase() + field.slice(1)}
-                          </label>
-                          <input
-                            className="form-control"
-                            value={selectedEmp[field]}
-                            onChange={(e) =>
-                              setSelectedEmp({
-                                ...selectedEmp,
-                                [field]: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      )
-                    )}
-                  </form>
-                ))}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" data-bs-dismiss="modal">
-                Close
-              </button>
-              {mode === "edit" && (
-                <button
-                  className="btn btn-success"
-                  onClick={() => {
-                    const updatedEmp = {
-                      ...selectedEmp,
-                      experiance: parseInt(selectedEmp.experiance),
-                      salary: parseFloat(selectedEmp.salary),
-                    };
-                    axios
-                      .put(
-                        `http://localhost:8082/getUpdate/${updatedEmp.id}`,
-                        updatedEmp
-                      )
-                      .then(() => {
-                        window.bootstrap.Modal.getInstance(
-                          document.getElementById("viewModal")
-                        ).hide();
-                        fetchEmployees();
-                      })
-                      .catch((err) => console.error("Update failed:", err));
-                  }}
-                >
-                  Save Changes
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <UpdateModel
+        mode={mode}
+        selectedEmp={selectedEmp}
+        setSelectedEmp={setSelectedEmp}
+        fetchEmployees={fetchEmployees}
+      />
 
       {/* Post Form */}
       <button
