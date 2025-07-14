@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "bootstrap-icons/font/bootstrap-icons.css";
-
 import Post from "./Post";
+import Pagination from "./ForwordAndBack.js";
+import ForwordAndBack from "./ForwordAndBack.js";
 
 function GetEmpList() {
   const [employees, setEmployees] = useState([]);
@@ -11,34 +12,30 @@ function GetEmpList() {
   const [showPostForm, setShowPostForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-
   const itemsPerPage = 5;
 
-  //  Filter employees
-  const filteredEmployees = React.useMemo(() => {
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = () => {
+    axios
+      .get("http://localhost:8082/getFindAll")
+      .then((res) => setEmployees(res.data))
+      .catch((err) => console.error("Error fetching employees:", err));
+  };
+
+  const filteredEmployees = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return employees.filter((emp) => {
-      const name = emp.name?.toLowerCase() || "";
-      return name.startsWith(term) || name.includes(term);
-    });
+    return employees.filter((emp) => emp.name?.toLowerCase().includes(term));
   }, [employees, searchTerm]);
 
-  // Paginate filtered employees
-  const currentEmployees = React.useMemo(() => {
+  const currentEmployees = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     return filteredEmployees.slice(indexOfFirstItem, indexOfLastItem);
   }, [filteredEmployees, currentPage]);
 
-  // Load employees
-  useEffect(() => {
-    axios
-      .get("http://localhost:8082/getFindAll")
-      .then((res) => setEmployees(res.data))
-      .catch((err) => console.error("Error fetching employees:", err));
-  }, []);
-
-  //  View or update modal handling
   const handleView = (emp, mode = "view") => {
     setSelectedEmp(emp);
     setMode(mode);
@@ -48,16 +45,11 @@ function GetEmpList() {
     modal.show();
   };
 
-  //  Delete employee
   const handleDelete = (emp) => {
     axios
       .delete(`http://localhost:8082/getDeleteById/${emp.id}`)
-      .then(() => {
-        setEmployees((prev) => prev.filter((e) => e.id !== emp.id));
-      })
-      .catch((error) => {
-        console.error("Error deleting employee:", error);
-      });
+      .then(() => setEmployees((prev) => prev.filter((e) => e.id !== emp.id)))
+      .catch((error) => console.error("Error deleting employee:", error));
   };
 
   return (
@@ -112,25 +104,27 @@ function GetEmpList() {
                 <td>{emp.experiance}</td>
                 <td>{emp.role}</td>
                 <td>{emp.salary}</td>
-                <td className="d-flex justify-content-between align-items-center">
-                  <button
-                    className="btn btn-info btn-sm me-2"
-                    onClick={() => handleView(emp, "view")}
-                  >
-                    View
-                  </button>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => handleView(emp, "edit")}
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(emp)}
-                  >
-                    Delete
-                  </button>
+                <td className="align-middle mx-4">
+                  <div className="d-flex justify-content-between ">
+                    <button
+                      className="btn btn-info btn-sm"
+                      onClick={() => handleView(emp, "view")}
+                    >
+                      View
+                    </button>
+                    <button
+                      className="btn btn-warning btn-sm"
+                      onClick={() => handleView(emp, "edit")}
+                    >
+                      Update
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDelete(emp)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
@@ -139,50 +133,13 @@ function GetEmpList() {
       </table>
 
       {/* Pagination */}
-      <nav className="mt-3">
-        <ul className="pagination justify-content-center">
-          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              {"<"}
-            </button>
-          </li>
-          {Array.from(
-            { length: Math.ceil(filteredEmployees.length / itemsPerPage) },
-            (_, i) => (
-              <li
-                key={i}
-                className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
-              >
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              </li>
-            )
-          )}
-          <li
-            className={`page-item ${
-              currentPage === Math.ceil(filteredEmployees.length / itemsPerPage)
-                ? "disabled"
-                : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              {">"}
-            </button>
-          </li>
-        </ul>
-      </nav>
+      <ForwordAndBack
+        totalPages={Math.ceil(filteredEmployees.length / itemsPerPage)}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+      />
 
-      {/* Bootstrap Modal */}
+      {/* Modal */}
       <div
         className="modal fade"
         id="viewModal"
@@ -193,15 +150,10 @@ function GetEmpList() {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="viewModalLabel">
+              <h5 className="modal-title">
                 {mode === "view" ? "Employee Details" : "Edit Employee"}
               </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+              <button className="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div className="modal-body">
               {selectedEmp &&
@@ -225,73 +177,27 @@ function GetEmpList() {
                     </li>
                   </ul>
                 ) : (
-                  <div>
-                    <div className="mb-2">
-                      <label>Name</label>
-                      <input
-                        className="form-control"
-                        value={selectedEmp.name}
-                        onChange={(e) =>
-                          setSelectedEmp({
-                            ...selectedEmp,
-                            name: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label>Gender</label>
-                      <input
-                        className="form-control"
-                        value={selectedEmp.gender}
-                        onChange={(e) =>
-                          setSelectedEmp({
-                            ...selectedEmp,
-                            gender: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label>Experience</label>
-                      <input
-                        className="form-control"
-                        value={selectedEmp.experiance}
-                        onChange={(e) =>
-                          setSelectedEmp({
-                            ...selectedEmp,
-                            experiance: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label>Role</label>
-                      <input
-                        className="form-control"
-                        value={selectedEmp.role}
-                        onChange={(e) =>
-                          setSelectedEmp({
-                            ...selectedEmp,
-                            role: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label>Salary</label>
-                      <input
-                        className="form-control"
-                        value={selectedEmp.salary}
-                        onChange={(e) =>
-                          setSelectedEmp({
-                            ...selectedEmp,
-                            salary: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
+                  <form>
+                    {["name", "gender", "experiance", "role", "salary"].map(
+                      (field) => (
+                        <div className="mb-2" key={field}>
+                          <label className="form-label">
+                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                          </label>
+                          <input
+                            className="form-control"
+                            value={selectedEmp[field]}
+                            onChange={(e) =>
+                              setSelectedEmp({
+                                ...selectedEmp,
+                                [field]: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      )
+                    )}
+                  </form>
                 ))}
             </div>
             <div className="modal-footer">
@@ -304,7 +210,7 @@ function GetEmpList() {
                   onClick={() => {
                     const updatedEmp = {
                       ...selectedEmp,
-                      experiance: parseInt(selectedEmp.experiance, 10),
+                      experiance: parseInt(selectedEmp.experiance),
                       salary: parseFloat(selectedEmp.salary),
                     };
                     axios
@@ -313,11 +219,11 @@ function GetEmpList() {
                         updatedEmp
                       )
                       .then(() => {
-                        const modalEl = document.getElementById("viewModal");
-                        window.bootstrap.Modal.getInstance(modalEl).hide();
-                        return axios.get("http://localhost:8082/getFindAll");
+                        window.bootstrap.Modal.getInstance(
+                          document.getElementById("viewModal")
+                        ).hide();
+                        fetchEmployees();
                       })
-                      .then((res) => setEmployees(res.data))
                       .catch((err) => console.error("Update failed:", err));
                   }}
                 >
@@ -331,12 +237,12 @@ function GetEmpList() {
 
       {/* Post Form */}
       <button
-        className="btn btn-primary mb-3"
+        className="btn btn-primary my-3"
         onClick={() => setShowPostForm(!showPostForm)}
       >
         {showPostForm ? "Hide Post Form" : "Add New Employee"}
       </button>
-      {showPostForm && <Post />}
+      {showPostForm && <Post onAdd={fetchEmployees} />}
     </div>
   );
 }
