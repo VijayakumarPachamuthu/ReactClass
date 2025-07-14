@@ -5,7 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Post from "./Post";
 
 function GetEmpList() {
-  const [employees, setEmployees] = useState([]); 
+  const [employees, setEmployees] = useState([]);
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [mode, setMode] = useState("view");
   const [showPostForm, setShowPostForm] = useState(false);
@@ -17,11 +17,10 @@ function GetEmpList() {
   //  Filter employees
   const filteredEmployees = React.useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return employees.filter((emp) =>
-      Object.values(emp).some((val) =>
-        val?.toString().toLowerCase().includes(term)
-      )
-    );
+    return employees.filter((emp) => {
+      const name = emp.name?.toLowerCase() || "";
+      return name.startsWith(term) || name.includes(term);
+    });
   }, [employees, searchTerm]);
 
   // Paginate filtered employees
@@ -43,7 +42,9 @@ function GetEmpList() {
   const handleView = (emp, mode = "view") => {
     setSelectedEmp(emp);
     setMode(mode);
-    const modal = new window.bootstrap.Modal(document.getElementById("viewModal"));
+    const modal = new window.bootstrap.Modal(
+      document.getElementById("viewModal")
+    );
     modal.show();
   };
 
@@ -96,36 +97,44 @@ function GetEmpList() {
           </tr>
         </thead>
         <tbody>
-          {currentEmployees.map((emp) => (
-            <tr key={emp.id}>
-              <td>{emp.id}</td>
-              <td>{emp.name}</td>
-              <td>{emp.gender}</td>
-              <td>{emp.experiance}</td>
-              <td>{emp.role}</td>
-              <td>{emp.salary}</td>
-              <td className="d-flex justify-content-between align-items-center">
-                <button
-                  className="btn btn-info btn-sm me-2"
-                  onClick={() => handleView(emp, "view")}
-                >
-                  View
-                </button>
-                <button
-                  className="btn btn-warning btn-sm me-2"
-                  onClick={() => handleView(emp, "edit")}
-                >
-                  Update
-                </button>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDelete(emp)}
-                >
-                  Delete
-                </button>
+          {currentEmployees.length === 0 ? (
+            <tr>
+              <td colSpan="7" className="text-center text-danger">
+                No matching employee found
               </td>
             </tr>
-          ))}
+          ) : (
+            currentEmployees.map((emp) => (
+              <tr key={emp.id}>
+                <td>{emp.id}</td>
+                <td>{emp.name}</td>
+                <td>{emp.gender}</td>
+                <td>{emp.experiance}</td>
+                <td>{emp.role}</td>
+                <td>{emp.salary}</td>
+                <td className="d-flex justify-content-between align-items-center">
+                  <button
+                    className="btn btn-info btn-sm me-2"
+                    onClick={() => handleView(emp, "view")}
+                  >
+                    View
+                  </button>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => handleView(emp, "edit")}
+                  >
+                    Update
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(emp)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
@@ -133,7 +142,10 @@ function GetEmpList() {
       <nav className="mt-3">
         <ul className="pagination justify-content-center">
           <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-            <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)}>
+            <button
+              className="page-link"
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
               {"<"}
             </button>
           </li>
@@ -144,7 +156,10 @@ function GetEmpList() {
                 key={i}
                 className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
               >
-                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                <button
+                  className="page-link"
+                  onClick={() => setCurrentPage(i + 1)}
+                >
                   {i + 1}
                 </button>
               </li>
@@ -157,7 +172,10 @@ function GetEmpList() {
                 : ""
             }`}
           >
-            <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)}>
+            <button
+              className="page-link"
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
               {">"}
             </button>
           </li>
@@ -186,15 +204,25 @@ function GetEmpList() {
               ></button>
             </div>
             <div className="modal-body">
-              {selectedEmp && (
-                mode === "view" ? (
+              {selectedEmp &&
+                (mode === "view" ? (
                   <ul className="list-group">
                     <li className="list-group-item">ID: {selectedEmp.id}</li>
-                    <li className="list-group-item">Name: {selectedEmp.name}</li>
-                    <li className="list-group-item">Gender: {selectedEmp.gender}</li>
-                    <li className="list-group-item">Experience: {selectedEmp.experiance}</li>
-                    <li className="list-group-item">Role: {selectedEmp.role}</li>
-                    <li className="list-group-item">Salary: ₹{selectedEmp.salary}</li>
+                    <li className="list-group-item">
+                      Name: {selectedEmp.name}
+                    </li>
+                    <li className="list-group-item">
+                      Gender: {selectedEmp.gender}
+                    </li>
+                    <li className="list-group-item">
+                      Experience: {selectedEmp.experiance}
+                    </li>
+                    <li className="list-group-item">
+                      Role: {selectedEmp.role}
+                    </li>
+                    <li className="list-group-item">
+                      Salary: ₹{selectedEmp.salary}
+                    </li>
                   </ul>
                 ) : (
                   <div>
@@ -204,7 +232,10 @@ function GetEmpList() {
                         className="form-control"
                         value={selectedEmp.name}
                         onChange={(e) =>
-                          setSelectedEmp({ ...selectedEmp, name: e.target.value })
+                          setSelectedEmp({
+                            ...selectedEmp,
+                            name: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -214,7 +245,10 @@ function GetEmpList() {
                         className="form-control"
                         value={selectedEmp.gender}
                         onChange={(e) =>
-                          setSelectedEmp({ ...selectedEmp, gender: e.target.value })
+                          setSelectedEmp({
+                            ...selectedEmp,
+                            gender: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -224,7 +258,10 @@ function GetEmpList() {
                         className="form-control"
                         value={selectedEmp.experiance}
                         onChange={(e) =>
-                          setSelectedEmp({ ...selectedEmp, experiance: e.target.value })
+                          setSelectedEmp({
+                            ...selectedEmp,
+                            experiance: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -234,7 +271,10 @@ function GetEmpList() {
                         className="form-control"
                         value={selectedEmp.role}
                         onChange={(e) =>
-                          setSelectedEmp({ ...selectedEmp, role: e.target.value })
+                          setSelectedEmp({
+                            ...selectedEmp,
+                            role: e.target.value,
+                          })
                         }
                       />
                     </div>
@@ -244,13 +284,15 @@ function GetEmpList() {
                         className="form-control"
                         value={selectedEmp.salary}
                         onChange={(e) =>
-                          setSelectedEmp({ ...selectedEmp, salary: e.target.value })
+                          setSelectedEmp({
+                            ...selectedEmp,
+                            salary: e.target.value,
+                          })
                         }
                       />
                     </div>
                   </div>
-                )
-              )}
+                ))}
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" data-bs-dismiss="modal">
@@ -266,7 +308,10 @@ function GetEmpList() {
                       salary: parseFloat(selectedEmp.salary),
                     };
                     axios
-                      .put(`http://localhost:8082/getUpdate/${updatedEmp.id}`, updatedEmp)
+                      .put(
+                        `http://localhost:8082/getUpdate/${updatedEmp.id}`,
+                        updatedEmp
+                      )
                       .then(() => {
                         const modalEl = document.getElementById("viewModal");
                         window.bootstrap.Modal.getInstance(modalEl).hide();
