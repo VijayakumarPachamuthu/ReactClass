@@ -12,18 +12,24 @@ function Post({ onAdd }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newEmp = {
-      name: emp.name,
-      gender: emp.gender,
-      experiance: emp.experiance,
-      role: emp.role,
-      salary: emp.salary,
-    };
+    const newEmp = { ...emp };
 
-    axios.post("http://localhost:8082/postSingleObject", newEmp)
+    axios
+      .post("http://localhost:8082/postSingleObject", newEmp)
       .then(() => {
-        setEmp({ name: "", gender: "", experiance: "", role: "", salary: "" });
-        if (onAdd) onAdd(); // refresh employee list
+        setEmp({
+          name: "",
+          gender: "",
+          experiance: "",
+          role: "",
+          salary: "",
+        });
+        if (onAdd) onAdd();
+
+        // Show Bootstrap toast
+        const toastEl = document.getElementById("successToast");
+        const bsToast = new window.bootstrap.Toast(toastEl);
+        bsToast.show();
       })
       .catch((err) => console.error("Error adding employee:", err));
   };
@@ -32,7 +38,7 @@ function Post({ onAdd }) {
     <div className="container m-5">
       <form
         onSubmit={handleSubmit}
-        className="border  p-4 rounded bg-light shadow-sm"
+        className="border p-4 rounded bg-light shadow-sm"
         style={{ maxWidth: "500px", margin: "0 auto" }}
       >
         <h5 className="mb-3 text-center text-primary">Add New Employee</h5>
@@ -59,6 +65,25 @@ function Post({ onAdd }) {
           </button>
         </div>
       </form>
+
+      {/* ✅ Bootstrap Toast */}
+      <div
+        className="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        id="successToast"
+      >
+        <div className="d-flex">
+          <div className="toast-body">Employee added successfully!</div>
+          <button
+            type="button"
+            className="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+      </div>
     </div>
   );
 }

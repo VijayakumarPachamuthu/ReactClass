@@ -24,6 +24,11 @@ function UpdateModel({ mode, selectedEmp, setSelectedEmp, fetchEmployees }) {
         const modalInstance = window.bootstrap.Modal.getInstance(modalEl);
         modalInstance.hide();
         fetchEmployees();
+
+        // ✅ Show success toast
+        const toastEl = document.getElementById("updateToast");
+        const bsToast = new window.bootstrap.Toast(toastEl);
+        bsToast.show();
       })
       .catch((err) => console.error("Update failed:", err));
   };
@@ -95,6 +100,25 @@ function UpdateModel({ mode, selectedEmp, setSelectedEmp, fetchEmployees }) {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ✅ Toast for successful update */}
+      <div
+        className="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        id="updateToast"
+      >
+        <div className="d-flex">
+          <div className="toast-body">Employee updated successfully!</div>
+          <button
+            type="button"
+            className="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
         </div>
       </div>
     </div>
