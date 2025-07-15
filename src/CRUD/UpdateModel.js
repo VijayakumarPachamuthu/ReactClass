@@ -24,8 +24,7 @@ function UpdateModel({ mode, selectedEmp, setSelectedEmp, fetchEmployees }) {
         const modalInstance = window.bootstrap.Modal.getInstance(modalEl);
         modalInstance.hide();
         fetchEmployees();
-
-        // ✅ Show success toast
+        // Show success toast
         const toastEl = document.getElementById("updateToast");
         const bsToast = new window.bootstrap.Toast(toastEl);
         bsToast.show();
